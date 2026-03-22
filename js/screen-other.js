@@ -1,4 +1,50 @@
 
+// ── EXPORT HELPERS ────────────────────────────────────────────────────────────
+function exportJSON(data, filename){
+  var str=JSON.stringify(data,null,2);
+  var blob=new Blob([str],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url; a.download=filename; a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+function exportProfile(profileId,profileName){
+  var d=new Date();
+  var dateStr=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  var safeName=profileName.replace(/[^a-z0-9]/gi,"-").toLowerCase();
+  var data={
+    version:1,
+    exportDate:d.toISOString(),
+    type:"single",
+    profile:JSON.parse(localStorage.getItem("ga_profiles")||"[]").find(function(pr){return pr.id===profileId;})||null,
+    progress:JSON.parse(localStorage.getItem("ga_"+profileId+"_progress")||"{}"),
+    history:JSON.parse(localStorage.getItem("ga_"+profileId+"_history")||"[]"),
+    paused:JSON.parse(localStorage.getItem("ga_"+profileId+"_paused")||"[]"),
+    typing:JSON.parse(localStorage.getItem("ga_typing_"+profileId)||"{}")
+  };
+  exportJSON(data,"grammarace-"+safeName+"-"+dateStr+".json");
+}
+function exportAllProfiles(){
+  var d=new Date();
+  var dateStr=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  var profiles=JSON.parse(localStorage.getItem("ga_profiles")||"[]");
+  var data={
+    version:1,
+    exportDate:d.toISOString(),
+    type:"all",
+    profiles:profiles.map(function(pr){
+      return {
+        profile:pr,
+        progress:JSON.parse(localStorage.getItem("ga_"+pr.id+"_progress")||"{}"),
+        history:JSON.parse(localStorage.getItem("ga_"+pr.id+"_history")||"[]"),
+        paused:JSON.parse(localStorage.getItem("ga_"+pr.id+"_paused")||"[]"),
+        typing:JSON.parse(localStorage.getItem("ga_typing_"+pr.id)||"{}")
+      };
+    })
+  };
+  exportJSON(data,"grammarace-all-profiles-"+dateStr+".json");
+}
+
 // ── DASHBOARD SCREEN ──────────────────────────────────────────────────────────
 function DashboardScreen(p){
   var info=getLvl(p.xp);
@@ -57,13 +103,34 @@ function DashboardScreen(p){
         "All questions are AI-generated (Groq · Llama 3.3) and not sourced from official past papers. They match the style of UK KS1-KS2 and 11+ assessments for practice only."
       )
     ),
+    React.createElement("div",{style:cs({marginBottom:"10px",background:"rgba(6,214,160,.05)",border:"1px solid "+TEAL+"44"})},
+      React.createElement("p",{style:{color:TEAL,fontSize:"12px",fontWeight:"800",margin:"0 0 8px"}},"📦 Backup Your Data"),
+      React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.6",margin:"0 0 10px"}},"Clearing your browser cookies or cache will permanently delete all profiles and progress. Export regularly to keep a backup."),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}},
+        React.createElement("button",{
+          onClick:function(){exportProfile(p.profile.id,p.profile.name);},
+          style:bs("linear-gradient(135deg,"+TEAL+","+BLUE+")",{width:"100%",color:WHITE,fontSize:"12px",padding:"10px"})
+        },"📥 Export My Data"),
+        React.createElement("button",{
+          onClick:function(){
+            if(window.confirm("Export all profiles on this device to one file?")) exportAllProfiles();
+          },
+          style:bs(CARD,{width:"100%",border:"1px solid "+TEAL,color:TEAL,fontSize:"12px",padding:"10px"})
+        },"📦 Export All Profiles")
+      )
+    ),
+    React.createElement("div",{style:cs({marginBottom:"10px",background:"rgba(239,68,68,.05)",border:"1px solid #EF444433"})},
+      React.createElement("p",{style:{color:RED,fontSize:"12px",fontWeight:"800",margin:"0 0 6px"}},"⚠️ Important: Data Loss Warning"),
+      React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.7",margin:0}},"Clearing your browser's cookies, cache or site data will permanently delete ALL GrammarAce profiles and progress from this device. There is no server backup and no way to recover this data. We strongly recommend exporting your data regularly using the buttons above.")
+    ),
     React.createElement("div",{style:cs({background:"rgba(6,214,160,.05)",border:"1px solid "+TEAL+"44"})},
       React.createElement("p",{style:{color:TEAL,fontSize:"12px",fontWeight:"800",margin:"0 0 8px"}},"🔒 Privacy Notice"),
       React.createElement("div",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.8"}},
         React.createElement("p",{style:{margin:"0 0 6px"}},React.createElement("strong",{style:{color:WHITE}},"Data stored on this device only: "),"All progress, history, badges and profiles are saved in your browser's local storage. No personal data is stored on any external server."),
         React.createElement("p",{style:{margin:"0 0 6px"}},React.createElement("strong",{style:{color:WHITE}},"AI question generation: "),"When generating questions or marking writing, the question text and written answers are sent to Groq's API (api.groq.com). No names or personal details are included."),
-        React.createElement("p",{style:{margin:"0 0 6px"}},React.createElement("strong",{style:{color:WHITE}},"Spelling & Pronunciation: "),"The spelling audio uses your device's built-in speech engine — no data is sent externally. The pronunciation check uses your device's microphone API, processed locally by the browser."),
-        React.createElement("p",{style:{margin:0}},React.createElement("strong",{style:{color:WHITE}},"No accounts, no tracking: "),"GrammarAce does not use cookies, analytics, advertising or any form of user tracking.")
+        React.createElement("p",{style:{margin:"0 0 6px"}},React.createElement("strong",{style:{color:WHITE}},"Spelling & Pronunciation: "),"The spelling audio uses your device's built-in speech engine. The pronunciation check uses your device's microphone API, processed locally by the browser."),
+        React.createElement("p",{style:{margin:"0 0 6px"}},React.createElement("strong",{style:{color:WHITE}},"No accounts, no tracking: "),"GrammarAce does not use cookies, analytics, advertising or any form of user tracking."),
+        React.createElement("p",{style:{margin:0}},React.createElement("a",{href:"privacy.html",style:{color:TEAL,fontWeight:"700",textDecoration:"none"}},"View full Privacy Policy →"))
       )
     )
   );

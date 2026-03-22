@@ -32,6 +32,12 @@ function ApiKeyScreen(p){
       err&&React.createElement("p",{style:{color:RED,fontSize:"11px",margin:"0 0 10px",lineHeight:"1.5"}},err),
       React.createElement("button",{onClick:save,disabled:testing,style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,opacity:testing?0.7:1,fontSize:"15px",padding:"13px"})},testing?"Testing...":"Start GrammarAce")
     ),
+    React.createElement("div",{style:{background:"rgba(6,214,160,.04)",border:"1px solid "+TEAL+"22",borderRadius:"12px",padding:"10px 14px",marginBottom:"12px",display:"flex",alignItems:"center",gap:"10px"}},
+      React.createElement("span",{style:{fontSize:"18px",flexShrink:0}},"🔒"),
+      React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.6",margin:0}},"No personal data is collected. All progress and profiles are stored on this device only. ",
+        React.createElement("a",{href:"privacy.html",style:{color:TEAL,fontWeight:"700",textDecoration:"none"}},"Privacy Policy")
+      )
+    ),
     React.createElement("div",{style:cs({background:"rgba(6,214,160,.06)",border:"1px solid "+TEAL+"44"})},
       React.createElement("p",{style:{color:TEAL,fontSize:"12px",fontWeight:"800",margin:"0 0 10px"}},"How to get your FREE key:"),
       [["1","Visit console.groq.com","https://console.groq.com"],["2","Sign up free (no credit card)",null],["3","Click API Keys in the sidebar",null],["4","Create API Key and copy it",null],["5","Paste it above and tap Start!",null]].map(function(s){
@@ -77,7 +83,14 @@ function ProfileSelect(p){
       })
     ),
     profiles.length<6&&React.createElement("button",{onClick:p.onCreate,style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,fontSize:"15px",padding:"14px",borderRadius:"14px"})},profiles.length===0?"Create Your Profile":"Add Another Profile"),
-    React.createElement("button",{onClick:function(){localStorage.removeItem("ga_groq_key");p.onChangeKey();},style:bs(CARD,{width:"100%",border:"1px solid "+BORDER,color:MUTED,fontSize:"11px",padding:"9px",marginTop:"12px"})},"Change API Key")
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginTop:"12px"}},
+      React.createElement("button",{onClick:p.onImport,style:bs(CARD,{width:"100%",border:"1px solid "+TEAL,color:TEAL,fontSize:"11px",padding:"9px"})},"📥 Import Data"),
+      React.createElement("button",{onClick:function(){localStorage.removeItem("ga_groq_key");p.onChangeKey();},style:bs(CARD,{width:"100%",border:"1px solid "+BORDER,color:MUTED,fontSize:"11px",padding:"9px"})},"🔑 Change API Key")
+    ),
+    React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:"7px",background:"rgba(239,68,68,.06)",border:"1px solid #EF444433",borderRadius:"10px",padding:"9px 12px",marginTop:"10px"}},
+      React.createElement("span",{style:{fontSize:"12px",flexShrink:0}},"⚠️"),
+      React.createElement("p",{style:{color:MUTED,fontSize:"10px",lineHeight:"1.6",margin:0}},"All data is stored on this device only. Clearing browser cookies or cache will permanently delete all profiles. Export your data from the Dashboard to keep a backup.")
+    )
   );
 }
 

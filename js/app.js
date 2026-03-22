@@ -38,6 +38,9 @@ function App(){
   var topicSt=React.useState(null),     topic=topicSt[0],    setTopic=topicSt[1];
   var frSt=React.useState(false),       fromRes=frSt[0],     setFromRes=frSt[1];
   var pmSt=React.useState(null),        pendingMode=pmSt[0], setPendingMode=pmSt[1];
+  var bkSt=React.useState(false),       showBackup=bkSt[0],  setShowBackup=bkSt[1];
+  var impSt=React.useState(false),      showImport=impSt[0], setShowImport=impSt[1];
+  var impMsgSt=React.useState(""),      importMsg=impMsgSt[0],setImportMsg=impMsgSt[1];
 
   var apiKeyRef=React.useRef(apiKey);
   var profRef=React.useRef(profile);
@@ -60,6 +63,17 @@ function App(){
   apiKeyRef.current=apiKey; profRef.current=profile;
   diffRef.current=diff; modeRef.current=mode;
   subjRef.current=subject; topicRef.current=topic;
+
+  // beforeunload: prompt user to export before leaving
+  React.useEffect(function(){
+    function handleBeforeUnload(e){
+      e.preventDefault();
+      e.returnValue="Have you exported your GrammarAce data? Closing the browser without exporting may result in data loss if you clear your cache.";
+      return e.returnValue;
+    }
+    window.addEventListener("beforeunload",handleBeforeUnload);
+    return function(){window.removeEventListener("beforeunload",handleBeforeUnload);};
+  },[]);
 
   React.useEffect(function(){
     if(!profile) return;
@@ -230,6 +244,9 @@ function App(){
     badRef.current=earned; setBadges(earned);
     if(got) showToast(got);
     persist({counts:nc,badges:earned});
+    // Backup reminder every 10 completed sessions
+    var totalSessions=Object.values(nc).reduce(function(a,b){return a+(b||0);},0);
+    if(totalSessions>0&&totalSessions%10===0) setShowBackup(true);
     setFromRes(true); setScreen("results");
   }
 
@@ -258,6 +275,59 @@ function App(){
     setScreen("question"); loadQ(sub.id,t,diffRef.current);
   }
 
+  // ── IMPORT DATA HANDLER ──────────────────────────────────────────────────────
+  function handleImportFile(e){
+    var file=e.target.files&&e.target.files[0];
+    if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.version||!data.type){setImportMsg("Invalid file format.");return;}
+        var toImport=[];
+        if(data.type==="single"&&data.profile){
+          toImport=[{profile:data.profile,progress:data.progress,history:data.history,paused:data.paused,typing:data.typing}];
+        } else if(data.type==="all"&&Array.isArray(data.profiles)){
+          toImport=data.profiles;
+        } else {setImportMsg("Could not read file.");return;}
+        // Ask user which profiles to restore
+        var names=toImport.map(function(p){return p.profile.name;}).join(", ");
+        if(!window.confirm("Import "+toImport.length+" profile(s): "+names+"?\n\nIf a profile name already exists you will be asked whether to replace it.")) return;
+        var existing=loadProfiles();
+        var updated=existing.slice();
+        toImport.forEach(function(item){
+          var pr=item.profile;
+          var existIdx=updated.findIndex(function(e){return e.name.toLowerCase()===pr.name.toLowerCase();});
+          if(existIdx>=0){
+            if(!window.confirm("Profile " + pr.name + " already exists on this device. Replace it? (tap Cancel to keep both)")) {
+              // Keep both — give imported profile a new id
+              pr=Object.assign({},pr,{id:uid(),name:pr.name+" (imported)"});
+            } else {
+              // Replace — remove existing first
+              var oldId=updated[existIdx].id;
+              updated.splice(existIdx,1);
+              try{["progress","history","paused"].forEach(function(k){localStorage.removeItem(getKey(oldId,k));});localStorage.removeItem("ga_typing_"+oldId);}catch(ex){}
+            }
+          }
+          updated.push(pr);
+          try{
+            if(item.progress) localStorage.setItem(getKey(pr.id,"progress"),JSON.stringify(item.progress));
+            if(item.history)  localStorage.setItem(getKey(pr.id,"history"), JSON.stringify(item.history));
+            if(item.paused)   localStorage.setItem(getKey(pr.id,"paused"),  JSON.stringify(item.paused));
+            if(item.typing)   localStorage.setItem("ga_typing_"+pr.id,      JSON.stringify(item.typing));
+          }catch(ex){}
+        });
+        saveProfiles(updated);
+        setImportMsg("Import successful! "+toImport.length+" profile(s) restored.");
+        setShowImport(false);
+        // Refresh profile list
+        setProfile(null);
+        localStorage.removeItem("ga_active_user");
+      }catch(err){setImportMsg("Import failed: "+(err.message||"unknown error"));}
+    };
+    reader.readAsText(file);
+  }
+
   function startCustomSession(customQuestion,m){
     var writingSub=SUBJECTS.find(function(s){return s.id==="writing";})||SUBJECTS[3];
     setSubject(writingSub); subjRef.current=writingSub;
@@ -278,7 +348,32 @@ function App(){
   if(!apiKey) return React.createElement(ApiKeyScreen,{onSave:function(k){setApiKey(k);}});
   if(!profile){
     if(profView==="create") return React.createElement(ProfileCreate,{onBack:function(){setProfView("select");},onCreated:function(pr){setProfile(pr);setProfView("select");}});
-    return React.createElement(ProfileSelect,{onSelect:function(pr){setProfile(pr);},onCreate:function(){setProfView("create");},onChangeKey:function(){setApiKey("");}});
+    // Backup reminder banner
+    if(showBackup) return React.createElement("div",{style:{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}},
+      React.createElement("div",{style:{maxWidth:"420px",width:"100%",background:CARD,border:"1px solid "+ORANGE+"55",borderRadius:"16px",padding:"24px",textAlign:"center"}},
+        React.createElement("div",{style:{fontSize:"48px",marginBottom:"12px"}},"💾"),
+        React.createElement("h2",{style:{color:ORANGE,fontSize:"18px",fontWeight:"900",margin:"0 0 10px"}},"Back Up Your Data"),
+        React.createElement("p",{style:{color:MUTED,fontSize:"13px",lineHeight:"1.7",margin:"0 0 16px"}},"Before switching profiles, consider exporting your data. Clearing browser cookies or cache permanently deletes all progress with no recovery option."),
+        React.createElement("p",{style:{color:MUTED,fontSize:"12px",lineHeight:"1.6",margin:"0 0 20px"}},"You can export from the Dashboard screen after logging in."),
+        React.createElement("button",{onClick:function(){setShowBackup(false);},style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,fontSize:"14px",padding:"13px",marginBottom:"8px"})},"✅ I understand, continue"),
+        React.createElement("a",{href:"privacy.html",style:{color:MUTED,fontSize:"11px",textDecoration:"none"}},"Privacy Policy")
+      )
+    );
+    // Hidden file input for import
+    var importInputId="ga-import-input";
+    return React.createElement("div",null,
+      React.createElement("input",{type:"file",id:importInputId,accept:".json",onChange:handleImportFile,style:{display:"none"}}),
+      importMsg&&React.createElement("div",{style:{position:"fixed",top:"14px",left:"50%",transform:"translateX(-50%)",zIndex:9999,background:CARD,border:"1px solid "+TEAL,borderRadius:"12px",padding:"12px 20px",color:TEAL,fontSize:"13px",fontWeight:"700",boxShadow:"0 4px 20px rgba(0,0,0,.4)",maxWidth:"320px",textAlign:"center"}},importMsg,React.createElement("button",{onClick:function(){setImportMsg("");},style:{background:"none",border:"none",color:MUTED,marginLeft:"10px",cursor:"pointer",fontSize:"14px"}},"✕")),
+      React.createElement(ProfileSelect,{
+        onSelect:function(pr){setProfile(pr);},
+        onCreate:function(){setProfView("create");},
+        onChangeKey:function(){setApiKey("");},
+        onImport:function(){
+          var inp=document.getElementById(importInputId);
+          if(inp){inp.value="";inp.click();}
+        }
+      })
+    );
   }
 
   return React.createElement("div",{style:{background:BG,minHeight:"100vh",fontFamily:"Nunito,sans-serif",color:WHITE,overflowY:"auto"}},
@@ -287,7 +382,7 @@ function App(){
       profile:profile,xp:xp,streak:streak,total:total,badges:badges,diff:diff,
       onDiff:function(d){setDiff(d);diffRef.current=d;persist({diff:d});},
       onGo:setScreen,
-      onSwitch:function(){localStorage.removeItem("ga_active_user");setProfile(null);},
+      onSwitch:function(){setShowBackup(true);localStorage.removeItem("ga_active_user");setProfile(null);},
       onChangeKey:function(){localStorage.removeItem("ga_groq_key");setApiKey("");},
       onNeedYear:function(){
         var el=document.getElementById("year-group-section");
