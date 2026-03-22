@@ -71,8 +71,9 @@ function HomeScreen(p){
     React.createElement("div",{style:{textAlign:"center",marginTop:"14px",paddingTop:"14px",borderTop:"1px solid "+BORDER}},
       React.createElement("a",{href:"privacy.html",style:{color:MUTED,fontSize:"11px",textDecoration:"none",fontWeight:"600"}},"🔒 Privacy Policy"),
       React.createElement("span",{style:{color:BORDER,margin:"0 8px"}},"|"),
-      React.createElement("span",{style:{color:MUTED,fontSize:"11px"}},"All data stored on this device only"),
+      React.createElement("a",{href:"https://forms.gle/YyPx5i24vMPP5STU6",target:"_blank",rel:"noopener",style:{color:TEAL,fontSize:"11px",textDecoration:"none",fontWeight:"600"}},"💬 Give Feedback"),
       React.createElement("br"),
+      React.createElement("span",{style:{color:MUTED,fontSize:"10px",display:"block",marginTop:"4px"}},"All data stored on this device only"),
       React.createElement("span",{style:{color:BORDER,fontSize:"10px",marginTop:"4px",display:"block"}},"© 2026 Kaulsays Consulting"),
       React.createElement("a",{href:"mailto:Kaul.Says+G.Ace@gmail.com",style:{color:MUTED,fontSize:"10px",textDecoration:"none",display:"block",marginTop:"2px"}},"Kaul.Says+G.Ace@gmail.com")
     )
