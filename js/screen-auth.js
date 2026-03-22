@@ -83,7 +83,14 @@ function ProfileSelect(p){
         );
       })
     ),
-    profiles.length<6&&React.createElement("button",{onClick:p.onCreate,style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,fontSize:"15px",padding:"14px",borderRadius:"14px"})},profiles.length===0?"Create Your Profile":"Add Another Profile"),
+    profiles.length<6&&React.createElement("button",{onClick:p.onCreate,style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,fontSize:"15px",padding:"14px",borderRadius:"14px",marginBottom:"8px"})},profiles.length===0?"Create Your Profile":"Add Another Profile"),
+    React.createElement("button",{
+      onClick:p.onQuickStart,
+      style:bs("linear-gradient(135deg,"+ORANGE+",#FF6B35)",{width:"100%",color:BG,fontSize:"15px",padding:"14px",borderRadius:"14px"})
+    },
+      React.createElement("span",null,"⚡ Quick Start"),
+      React.createElement("span",{style:{display:"block",fontSize:"10px",fontWeight:"600",marginTop:"2px",opacity:0.8}},"No saving — session only, deleted when browser closes")
+    ),
     React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginTop:"12px"}},
       React.createElement("button",{onClick:p.onImport,style:bs(CARD,{width:"100%",border:"1px solid "+TEAL,color:TEAL,fontSize:"11px",padding:"9px"})},"📥 Import Data"),
       React.createElement("button",{onClick:function(){localStorage.removeItem("ga_groq_key");p.onChangeKey();},style:bs(CARD,{width:"100%",border:"1px solid "+BORDER,color:MUTED,fontSize:"11px",padding:"9px"})},"🔑 Change API Key")

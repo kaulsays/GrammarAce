@@ -404,6 +404,17 @@ function App(){
         onImport:function(){
           var inp=document.getElementById(importInputId);
           if(inp){inp.value="";inp.click();}
+        },
+        onQuickStart:function(){
+          // Create an anonymous burner profile in memory only - never saved
+          var guestPr={
+            id:"guest_"+Date.now(),
+            name:"Guest",
+            avatar:"🦉",
+            type:"burner",
+            createdAt:new Date().toISOString()
+          };
+          setProfile(guestPr);
         }
       })
     );
