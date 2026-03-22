@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy — GrammarAce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#060B20;font-family:"Nunito",sans-serif;color:#E8EEFF;min-height:100vh;padding:32px 18px;}
+    .wrap{max-width:680px;margin:0 auto;}
+    .back{display:inline-flex;align-items:center;gap:8px;color:#6B7A9E;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:28px;border:1px solid #1E2654;padding:7px 14px;border-radius:10px;}
+    .back:hover{color:#E8EEFF;}
+    .logo{text-align:center;margin-bottom:32px;}
+    .logo .owl{font-size:56px;display:block;margin-bottom:10px;}
+    .logo h1{color:#FFD166;font-size:28px;font-weight:900;margin-bottom:4px;}
+    .logo p{color:#6B7A9E;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+    .card{background:#0E1530;border:1px solid #1E2654;border-radius:16px;padding:24px;margin-bottom:16px;}
+    h2{color:#FFD166;font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    h3{color:#E8EEFF;font-size:13px;font-weight:800;margin:14px 0 6px;}
+    p{color:#6B7A9E;font-size:13px;line-height:1.8;margin-bottom:10px;}
+    p:last-child{margin-bottom:0;}
+    strong{color:#E8EEFF;}
+    .highlight{background:rgba(6,214,160,.06);border:1px solid rgba(6,214,160,.3);border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+    .highlight p{color:#06D6A0;font-weight:700;font-size:13px;margin:0;}
+    .tag{display:inline-block;background:rgba(67,97,238,.2);color:#4361EE;border-radius:20px;padding:2px 12px;font-size:11px;font-weight:700;margin-right:6px;margin-bottom:6px;}
+    .footer{text-align:center;color:#6B7A9E;font-size:11px;margin-top:32px;padding-top:20px;border-top:1px solid #1E2654;}
+    .footer a{color:#4361EE;text-decoration:none;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" class="back">← Back to GrammarAce</a>
+
+  <div class="logo">
+    <span class="owl">🦉</span>
+    <h1>Privacy Policy</h1>
+    <p>GrammarAce · UK 11+ Prep App</p>
+  </div>
+
+  <div class="highlight">
+    <p>GrammarAce does not collect, store or share any personal data on external servers. All progress, history and profiles stay on your device.</p>
+  </div>
+
+  <div class="card">
+    <h2>📋 Overview</h2>
+    <p>GrammarAce is a free educational app designed to help children prepare for UK 11+ grammar school entrance exams. This privacy policy explains what data is used, where it is stored, and how the app works.</p>
+    <p><strong>Last updated:</strong> March 2026 &nbsp;·&nbsp; <strong>Developed by:</strong> Kaulsays Consulting</p>
+  </div>
+
+  <div class="card">
+    <h2>💾 Data Storage</h2>
+    <h3>What is stored and where</h3>
+    <p>All app data is stored exclusively in your browser's <strong>local storage</strong> — a private area on your own device. This includes:</p>
+    <span class="tag">User profiles</span>
+    <span class="tag">XP & badges</span>
+    <span class="tag">Question history</span>
+    <span class="tag">Writing answers</span>
+    <span class="tag">Paused prompts</span>
+    <span class="tag">Year group settings</span>
+    <span class="tag">Groq API key</span>
+    <p style="margin-top:12px;">None of this data is transmitted to GrammarAce, Kaulsays Consulting, or any third party. It never leaves your device.</p>
+    <h3>Clearing your data</h3>
+    <p>You can delete all stored data at any time by clearing your browser's local storage or cache, or by deleting individual profiles from within the app.</p>
+  </div>
+
+  <div class="card">
+    <h2>🤖 AI Question Generation (Groq)</h2>
+    <p>GrammarAce uses the <strong>Groq API</strong> (api.groq.com) to generate practice questions and mark creative writing. When a question is generated or writing is submitted for feedback, the following is sent to Groq:</p>
+    <span class="tag">Question text</span>
+    <span class="tag">Subject & topic</span>
+    <span class="tag">Year group</span>
+    <span class="tag">Written answer (for feedback only)</span>
+    <p style="margin-top:12px;"><strong>What is never sent to Groq:</strong> names, profile information, device identifiers, or any personally identifiable information.</p>
+    <p>Your Groq API key is stored only in your browser's local storage and is sent directly from your browser to Groq's servers. It is never seen or stored by GrammarAce or Kaulsays Consulting.</p>
+    <p>Groq's own privacy policy applies to data sent to their API. You can review it at <a href="https://groq.com/privacy-policy" target="_blank" rel="noopener" style="color:#4361EE;">groq.com/privacy-policy</a>.</p>
+  </div>
+
+  <div class="card">
+    <h2>📷 Photo Upload & Handwriting Recognition</h2>
+    <p>When a student uploads a photo of their handwritten answer, the image is converted to base64 format in the browser and sent to Groq's vision API for transcription. The image is processed to extract text only and is not stored by GrammarAce.</p>
+    <p>Photos are never stored on any server by GrammarAce or Kaulsays Consulting.</p>
+  </div>
+
+  <div class="card">
+    <h2>🔊 Speech Features</h2>
+    <h3>Spelling Test (text-to-speech)</h3>
+    <p>The Spelling Test uses your device's built-in <strong>Web Speech Synthesis API</strong> to speak words aloud. This is processed entirely on your device. No audio data is sent anywhere.</p>
+    <h3>Pronunciation Check (speech recognition)</h3>
+    <p>The Pronunciation Check uses your device's built-in <strong>Web Speech Recognition API</strong>. Audio is processed locally by your browser. GrammarAce does not record, store or transmit any audio.</p>
+    <p>Note: Speech recognition requires the app to be accessed over HTTPS (which it is when hosted on GitHub Pages).</p>
+  </div>
+
+  <div class="card">
+    <h2>🍪 Cookies & Tracking</h2>
+    <p>GrammarAce uses <strong>no cookies</strong>, no analytics, no advertising, no tracking pixels, and no third-party tracking scripts of any kind.</p>
+    <p>The only external resources loaded are:</p>
+    <span class="tag">Google Fonts (Nunito typeface)</span>
+    <span class="tag">React & ReactDOM (cdnjs.cloudflare.com)</span>
+    <span class="tag">Groq API (question generation only)</span>
+    <p style="margin-top:12px;">Google Fonts may log your IP address when loading the font. To avoid this, the font can be self-hosted — contact us if this is a concern.</p>
+  </div>
+
+  <div class="card">
+    <h2>👶 Children's Privacy</h2>
+    <p>GrammarAce is designed for use by children aged 5–11. We take children's privacy seriously:</p>
+    <p>• No personal information (names, ages, locations, email addresses) is collected by the app<br/>
+       • Profile names entered by users are stored only on the local device<br/>
+       • No accounts are created and no registration is required<br/>
+       • The app does not display advertising of any kind<br/>
+       • No data profiling or behavioural tracking takes place</p>
+    <p>Because no personal data is collected or transmitted by GrammarAce itself, the app is designed to comply with UK GDPR and COPPA principles by default.</p>
+  </div>
+
+  <div class="card">
+    <h2>📬 Contact</h2>
+    <p>If you have any questions about this privacy policy or how GrammarAce handles data, please contact:</p>
+    <p><strong>Kaulsays Consulting</strong><br/>
+    <a href="https://buymeacoffee.com/kaulsays" target="_blank" rel="noopener" style="color:#4361EE;">buymeacoffee.com/kaulsays</a></p>
+  </div>
+
+  <div class="footer">
+    <p>© 2026 Kaulsays Consulting · <a href="index.html">Back to GrammarAce</a></p>
+  </div>
+</div>
+</body>
+</html>
