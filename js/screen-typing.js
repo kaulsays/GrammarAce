@@ -1,4 +1,111 @@
 
+
+// ── KEYBOARD DIAGRAM ──────────────────────────────────────────────────────────
+var FINGER_MAP={
+  // Top row
+  q:"lp",w:"lr",e:"lm",r:"li",t:"li",y:"ri",u:"ri",i:"rm",o:"rr",p:"rp",
+  // Home row
+  a:"lp",s:"lr",d:"lm",f:"li",g:"li",h:"ri",j:"ri",k:"rm",l:"rr",";":"rp",
+  // Bottom row
+  z:"lp",x:"lr",c:"lm",v:"li",b:"li",n:"ri",m:"ri",",":"rm",".":"rr","/":"rp",
+  " ":"thumb"
+};
+var FINGER_COLORS={
+  lp:{bg:"#D6E8FF",border:"#3B7DD8",text:"#0C2D6B"},
+  lr:{bg:"#FFF3CD",border:"#D4900A",text:"#5C3A00"},
+  lm:{bg:"#D4EDDA",border:"#2E7D46",text:"#0D3B1F"},
+  li:{bg:"#F3D9FF",border:"#8A38C8",text:"#3A0066"},
+  ri:{bg:"#FFE0CC",border:"#CC5500",text:"#5C1F00"},
+  rm:{bg:"#D0F0F8",border:"#0A89B0",text:"#003A4F"},
+  rr:{bg:"#FFDDE8",border:"#C02060",text:"#500020"},
+  rp:{bg:"#E8E8E8",border:"#555555",text:"#111111"},
+  thumb:{bg:"#F0F0F0",border:"#888888",text:"#333333"}
+};
+var FINGER_LABELS={lp:"LP",lr:"LR",lm:"LM",li:"LI",ri:"RI",rm:"RM",rr:"RR",rp:"RP",thumb:""};
+var HOME_KEYS=["a","s","d","f","g","h","j","k","l",";"];
+var BUMP_KEYS=["f","j"];
+var KB_ROWS=[
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l",";"],
+  ["z","x","c","v","b","n","m",",",".","/"]
+];
+
+function KeyboardDiagram(p){
+  var nextChar=p.nextChar?(p.nextChar.toLowerCase()):"";
+  var isTouch=p.isTouch;
+  var s=isTouch?24:28; // key size
+  var gap=isTouch?3:4;
+  var fsKey=isTouch?9:10;
+  var fsFinger=isTouch?6:7;
+
+  function Key(props){
+    var ch=props.ch;
+    var finger=FINGER_MAP[ch]||"rp";
+    var col=FINGER_COLORS[finger];
+    var isHome=HOME_KEYS.indexOf(ch)>=0;
+    var isBump=BUMP_KEYS.indexOf(ch)>=0;
+    var isNext=nextChar===ch&&!isTouch;
+    var isWide=props.wide;
+    var w=isWide?(s*1.5+gap):s;
+    var label=props.label||ch.toUpperCase();
+    return React.createElement("div",{
+      style:{
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        width:w+"px",height:s+"px",borderRadius:"4px",
+        background:isNext?"#8A38C8":col.bg,
+        border:(isHome?"2px":"1.5px")+" solid "+(isNext?"#5A18A8":col.border),
+        color:isNext?"#fff":col.text,
+        fontSize:fsKey+"px",fontWeight:"500",flexShrink:0,position:"relative",
+        animation:isNext?"kbPulse 0.7s ease-in-out infinite":"none",
+        boxShadow:isNext?"0 0 0 3px "+col.border+"44":"none",
+        transition:"all .15s"
+      }
+    },
+      React.createElement("span",{style:{fontSize:fsKey+"px",lineHeight:1}},label),
+      !isTouch&&FINGER_LABELS[finger]&&React.createElement("span",{style:{fontSize:fsFinger+"px",lineHeight:1,opacity:0.7}},FINGER_LABELS[finger]),
+      isBump&&React.createElement("div",{style:{position:"absolute",bottom:"3px",left:"50%",transform:"translateX(-50%)",width:"5px",height:"2px",borderRadius:"1px",background:"currentColor",opacity:0.5}})
+    );
+  }
+
+  var rowOffsets=[s*0.35,s*0.52,s*0.75];
+
+  return React.createElement("div",{style:{marginTop:"12px"}},
+    // pulse keyframe via inline style hack
+    React.createElement("style",null,"@keyframes kbPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.14);}}"),
+    // Rows
+    [0,1,2].map(function(ri){
+      return React.createElement("div",{key:ri,style:{display:"flex",justifyContent:"center",gap:gap+"px",marginBottom:gap+"px",paddingLeft:rowOffsets[ri]+"px"}},
+        KB_ROWS[ri].map(function(ch){
+          return React.createElement(Key,{key:ch,ch:ch});
+        })
+      );
+    }),
+    // Space bar row
+    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:gap+"px",marginTop:gap+"px"}},
+      React.createElement("div",{style:{
+        width:(s*6)+"px",height:s+"px",borderRadius:"4px",
+        background:nextChar===" "?"#8A38C8":"#F0F0F0",
+        border:"1.5px solid "+(nextChar===" "?"#5A18A8":"#888888"),
+        color:nextChar===" "?"#fff":"#333",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:fsKey+"px",fontWeight:"500",
+        animation:nextChar===" "?"kbPulse 0.7s ease-in-out infinite":"none"
+      }},"Space — both thumbs")
+    ),
+    // Legend
+    !isTouch&&React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:"5px",justifyContent:"center",marginTop:"10px"}},
+      Object.keys(FINGER_COLORS).filter(function(f){return f!=="thumb";}).map(function(f){
+        var col=FINGER_COLORS[f];
+        return React.createElement("div",{key:f,style:{display:"flex",alignItems:"center",gap:"4px",fontSize:"10px",color:"#666"}},
+          React.createElement("div",{style:{width:"18px",height:"14px",borderRadius:"3px",background:col.bg,border:"1.5px solid "+col.border,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"8px",fontWeight:"500",color:col.text}},FINGER_LABELS[f]),
+          f==="lp"?"L.Pinky":f==="lr"?"L.Ring":f==="lm"?"L.Mid":f==="li"?"L.Index":f==="ri"?"R.Index":f==="rm"?"R.Mid":f==="rr"?"R.Ring":"R.Pinky"
+        );
+      })
+    ),
+    isTouch&&React.createElement("div",{style:{textAlign:"center",fontSize:"10px",color:"#6B7A9E",marginTop:"6px"}},"Reference only — keyboard required to type")
+  );
+}
+
 // ── TYPING TUTOR SCREEN ───────────────────────────────────────────────────────
 function TypingTutorScreen(p){
   var hasKeyboard=(function(){
@@ -130,6 +237,10 @@ function TypingTutorScreen(p){
     lesson.tip&&React.createElement("p",{style:{color:PURPLE,fontSize:"11px",marginBottom:"10px",fontStyle:"italic"}},lesson.tip),
     renderText(),
     !finished&&React.createElement("textarea",{ref:inputRef,value:typed,onChange:handleTyping,placeholder:"Start typing here...",rows:3,style:{width:"100%",background:BG,border:"2px solid "+BORDER,borderRadius:"12px",padding:"12px",color:WHITE,fontSize:"16px",fontFamily:"monospace",letterSpacing:"1px",display:"block",resize:"none"}}),
+    React.createElement(KeyboardDiagram,{
+      nextChar:(!finished&&lesson&&typed.length<lesson.text.length)?lesson.text[typed.length]:"",
+      isTouch:!hasKeyboard
+    }),
     finished&&React.createElement("div",{style:Object.assign(cs({textAlign:"center",padding:"24px"}),{border:"1px solid "+GOLD,background:"rgba(255,209,102,.06)"})},
       React.createElement("div",{style:{fontSize:"48px",marginBottom:"8px",animation:"pop .4s ease"}},accuracy>=95?"🌟":accuracy>=80?"🎉":"👍"),
       React.createElement("div",{style:{color:GOLD,fontSize:"22px",fontWeight:"900",marginBottom:"4px"}},wpm+" WPM"),

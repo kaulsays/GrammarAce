@@ -426,7 +426,7 @@ function App(){
       profile:profile,xp:xp,streak:streak,total:total,badges:badges,diff:diff,
       onDiff:function(d){setDiff(d);diffRef.current=d;persist({diff:d});},
       onGo:setScreen,
-      onSwitch:function(){setShowBackup(true);localStorage.removeItem("ga_active_user");setProfile(null);},
+      onSwitch:function(){if(profRef.current&&profRef.current.type!=="burner")setShowBackup(true);localStorage.removeItem("ga_active_user");setProfile(null);},
       onChangeKey:function(){localStorage.removeItem("ga_groq_key");setApiKey("");},
       onNeedYear:function(){
         var el=document.getElementById("year-group-section");
