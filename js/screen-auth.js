@@ -65,7 +65,8 @@ function ProfileSelect(p){
     React.createElement("div",{style:{textAlign:"center",marginBottom:"24px"}},
       React.createElement("div",{style:{fontSize:"64px",lineHeight:1.1,filter:"drop-shadow(0 0 18px rgba(255,209,102,.5))",display:"inline-block",animation:"float 3s ease-in-out infinite"}},"🦉"),
       React.createElement("h1",{style:{color:GOLD,fontSize:"24px",fontWeight:"900",margin:"10px 0 3px"}},"GrammarAce"),
-      React.createElement("p",{style:{color:MUTED,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase"}},"Who is practising today?")
+      React.createElement("p",{style:{color:MUTED,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase"}},"Who is practising today?"),
+    React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.6",marginTop:"8px",padding:"0 8px",textAlign:"center"}},"Profiles are saved on this device and browser only. GrammarAce does not sync between devices. Export and Import is for backup and restore only — not for keeping two devices in sync.")
     ),
     profiles.length>0&&React.createElement("div",{style:{marginBottom:"16px"}},
       profiles.map(function(pr){

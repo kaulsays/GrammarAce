@@ -105,7 +105,8 @@ function DashboardScreen(p){
     ),
     React.createElement("div",{style:cs({marginBottom:"10px",background:"rgba(6,214,160,.05)",border:"1px solid "+TEAL+"44"})},
       React.createElement("p",{style:{color:TEAL,fontSize:"12px",fontWeight:"800",margin:"0 0 8px"}},"📦 Backup Your Data"),
-      React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.6",margin:"0 0 10px"}},"Clearing your browser cookies or cache will permanently delete all profiles and progress. Export regularly to keep a backup."),
+      React.createElement("p",{style:{color:MUTED,fontSize:"11px",lineHeight:"1.6",margin:"0 0 6px"}},"Clearing your browser cookies or cache will permanently delete all profiles and progress. Export regularly to keep a backup."),
+      React.createElement("p",{style:{color:ORANGE,fontSize:"11px",lineHeight:"1.6",margin:"0 0 10px",fontWeight:"700"}},"⚠️ Import replaces the selected profile's data. If you have used the app on this device since your last export, importing an older backup will overwrite that newer progress."),
       React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"8px"}},
         React.createElement("button",{
           onClick:function(){exportProfile(p.profile.id,p.profile.name);},
