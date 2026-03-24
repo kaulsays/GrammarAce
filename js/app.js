@@ -96,7 +96,7 @@ function App(){
     var d=loadProgress(profile.id);
     histRef.current=loadHistory(profile.id);
     var px=d.xp||0, pt=d.total||0, pb=d.badges||[];
-    var pc=d.counts||{maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0};
+    var pc=d.counts||{maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0,grammar:0};
     var pd=d.diff||"";
     setXp(px); xpRef.current=px;
     setTotal(pt); totRef.current=pt;
@@ -259,6 +259,7 @@ function App(){
     if((nc.writing||0)>=5)  got=award(earned,"w5")||got;
     if((nc.spelling||0)>=5) got=award(earned,"sp5")||got;
     if((nc.typing||0)>=5)   got=award(earned,"tp5")||got;
+    if((nc.grammar||0)>=5)  got=award(earned,"gp5")||got;
     if(scRef.current===qtRef.current) got=award(earned,"perfect")||got;
     if(modeRef.current&&modeRef.current.id==="mock"&&scRef.current/qtRef.current>=0.8) got=award(earned,"mockAce")||got;
     badRef.current=earned; setBadges(earned);
@@ -440,6 +441,7 @@ function App(){
         setSubject(s); subjRef.current=s;
         if(s.id==="spelling"){ setScreen("spelling"); }
         else if(s.id==="typing"){ setScreen("typing"); }
+        else if(s.id==="grammar"){ setScreen("grammar"); }
         else{ setScreen("modes"); }
       }
     }),
@@ -503,6 +505,20 @@ function App(){
           persist({counts:nc,badges:earned});
         }
         setScreen("subjects");
+      }
+    }),
+    screen==="grammar"&&React.createElement(GrammarScreen,{
+      yearId:diff,apiKey:apiKey,
+      onBack:function(){setScreen("subjects");},
+      onHome:function(){setScreen("home");},
+      onAnswer:function(correct){
+        var newT=totRef.current+1; totRef.current=newT; setTotal(newT);
+        var xpPQ={year1:6,year2:8,year3:10,year4:15,year5:20,year6:25};
+        var gain=correct?(xpPQ[diffRef.current]||20):0;
+        var newXp=xpRef.current+gain; xpRef.current=newXp; setXp(newXp);
+        var earned=badRef.current.slice();
+        if(correct){var got=award(earned,"first");if(got){badRef.current=earned;setBadges(earned);showToast(got);}}
+        persist({xp:newXp,total:newT});
       }
     }),
     screen==="typing"&&React.createElement(TypingTutorScreen,{
