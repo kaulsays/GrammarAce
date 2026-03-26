@@ -3,15 +3,22 @@
 function HomeScreen(p){
   var paused=loadPaused(p.profile.id);
   return React.createElement("div",{style:{padding:"18px",maxWidth:"480px",margin:"0 auto",animation:"fadeIn .3s ease"}},
-    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"}},
-      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"10px"}},
-        React.createElement("div",{style:{width:"38px",height:"38px",borderRadius:"50%",background:"linear-gradient(135deg,"+PURPLE+","+BLUE+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px"}},p.profile.avatar),
-        React.createElement("div",null,
-          React.createElement("div",{style:{color:WHITE,fontWeight:"800",fontSize:"13px"}},p.profile.name),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px",gap:"8px"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}},
+        React.createElement("div",{style:{width:"38px",height:"38px",borderRadius:"50%",background:"linear-gradient(135deg,"+PURPLE+","+BLUE+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",flexShrink:0}},p.profile.avatar),
+        React.createElement("div",{style:{minWidth:0}},
+          React.createElement("div",{style:{color:WHITE,fontWeight:"800",fontSize:"13px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.profile.name),
           React.createElement("div",{style:{color:MUTED,fontSize:"10px"}},"Lv "+getLvl(p.xp).lv+" · "+getLvl(p.xp).name)
         )
       ),
-      React.createElement("button",{onClick:p.onSwitch,style:{background:"none",border:"1px solid "+BORDER,color:MUTED,borderRadius:"10px",padding:"5px 11px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}},"Switch User")
+      React.createElement("div",{style:{display:"flex",gap:"6px",flexShrink:0}},
+        React.createElement("button",{
+          onClick:p.onExport,
+          title:"Export my data — download a backup file",
+          style:{background:"none",border:"1px solid "+TEAL,color:TEAL,borderRadius:"10px",padding:"5px 10px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}
+        },"📥 Export"),
+        React.createElement("button",{onClick:p.onSwitch,style:{background:"none",border:"1px solid "+BORDER,color:MUTED,borderRadius:"10px",padding:"5px 11px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}},"Switch User")
+      )
     ),
     React.createElement("div",{style:{textAlign:"center",padding:"4px 0 6px"}},
       React.createElement("div",{style:{fontSize:"56px",lineHeight:1.1,filter:"drop-shadow(0 0 18px rgba(255,209,102,.5))",display:"inline-block",animation:"float 3s ease-in-out infinite"}},"🦉"),

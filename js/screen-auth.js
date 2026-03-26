@@ -120,7 +120,7 @@ function ProfileCreate(p){
       saveProfiles(prs.concat([pr]));
       localStorage.setItem("ga_active_user",pr.id);
     }
-    p.onCreated(pr);
+    p.onCreated(pr,true);
   }
   return React.createElement("div",{style:{maxWidth:"460px",margin:"0 auto",padding:"28px 18px",animation:"fadeIn .3s ease"}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"12px",marginBottom:"24px"}},

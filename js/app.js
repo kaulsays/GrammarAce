@@ -1,4 +1,3 @@
-
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN APP COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
@@ -17,7 +16,7 @@ function App(){
   var strkSt=React.useState(0),         streak=strkSt[0],    setStreak=strkSt[1];
   var totSt=React.useState(0),          total=totSt[0],      setTotal=totSt[1];
   var badgSt=React.useState([]),        badges=badgSt[0],    setBadges=badgSt[1];
-  var cntSt=React.useState({maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0}),counts=cntSt[0],setCounts=cntSt[1];
+  var cntSt=React.useState({maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0,grammar:0}),counts=cntSt[0],setCounts=cntSt[1];
   var diffSt=React.useState(""),        diff=diffSt[0],      setDiff=diffSt[1];
   var qSt=React.useState(null),         q=qSt[0],            setQ=qSt[1];
   var ldSt=React.useState(false),       loading=ldSt[0],     setLoading=ldSt[1];
@@ -44,7 +43,7 @@ function App(){
 
   var apiKeyRef=React.useRef(apiKey);
   var profRef=React.useRef(profile);
-  var diffRef=React.useRef(diff);  // starts as ""
+  var diffRef=React.useRef(diff);
   var modeRef=React.useRef(mode);
   var subjRef=React.useRef(subject);
   var topicRef=React.useRef(topic);
@@ -53,37 +52,34 @@ function App(){
   var xpRef=React.useRef(0);
   var totRef=React.useRef(0);
   var badRef=React.useRef([]);
-  var cntRef=React.useRef({maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0});
+  var cntRef=React.useRef({maths:0,english:0,nvr:0,writing:0,spelling:0,typing:0,grammar:0});
   var prevRef=React.useRef([]);
   var timerRef=React.useRef(null);
   var qnRef=React.useRef(1);
   var qtRef=React.useRef(10);
   var histRef=React.useRef([]);
+  var isLeavingRef=React.useRef(false);
 
   apiKeyRef.current=apiKey; profRef.current=profile;
   diffRef.current=diff; modeRef.current=mode;
   subjRef.current=subject; topicRef.current=topic;
 
-  // beforeunload: only show warning when actually closing/refreshing the browser
-  // Uses a flag - navigation within the app sets it to false first
-  var isLeavingRef=React.useRef(false);
+  // beforeunload - only on actual close, not internal navigation
   React.useEffect(function(){
-    // Set flag true briefly on all link/button clicks that navigate away from the site
     function handleBeforeUnload(e){
-      if(isLeavingRef.current) return; // internal navigation - skip
+      if(isLeavingRef.current) return;
       e.preventDefault();
       e.returnValue="Have you exported your GrammarAce data? Closing without exporting may lose data if you clear your cache.";
       return e.returnValue;
     }
-    window.addEventListener("beforeunload",handleBeforeUnload);
-    // Mark as internal navigation when Privacy Policy link or any anchor is clicked
     function handleClick(e){
-      var a=e.target.closest("a[href]");
+      var a=e.target.closest&&e.target.closest("a[href]");
       if(a&&a.href&&a.href.indexOf(window.location.hostname)>=0){
         isLeavingRef.current=true;
         setTimeout(function(){isLeavingRef.current=false;},500);
       }
     }
+    window.addEventListener("beforeunload",handleBeforeUnload);
     document.addEventListener("click",handleClick);
     return function(){
       window.removeEventListener("beforeunload",handleBeforeUnload);
@@ -112,8 +108,8 @@ function App(){
     return function(){clearTimeout(timerRef.current);};
   },[timer,timerOn]);
 
-  // Burner profiles don't write to localStorage - state lives in memory only
   function isBurner(){ return profRef.current&&profRef.current.type==="burner"; }
+
   function persist(ex){
     if(!profRef.current||isBurner()) return;
     saveProgress(profRef.current.id,Object.assign({xp:xpRef.current,total:totRef.current,streak:streak,badges:badRef.current,counts:cntRef.current,diff:diffRef.current},ex||{}));
@@ -145,7 +141,7 @@ function App(){
     if(Object.keys(cntRef.current).every(function(k){return (cntRef.current[k]||0)>0;})) got=award(earned,"allRnd")||got;
     badRef.current=earned; setBadges(earned);
     if(got) showToast(got);
-    if(qData&&profRef.current){
+    if(qData&&profRef.current&&!isBurner()){
       var entry={
         date:new Date().toISOString(),
         subject:subjRef.current?subjRef.current.id:"",
@@ -167,25 +163,23 @@ function App(){
         writingScore:null
       };
       var nh=histRef.current.concat([entry]);
-      histRef.current=nh;
-      if(!isBurner()) saveHistory(profRef.current.id,nh);
+      histRef.current=nh; saveHistory(profRef.current.id,nh);
     }
     persist({xp:newXp,total:newT,badges:earned});
   }
 
   function handleWritingFeedback(studentAnswer,fb){
-    if(!profRef.current||histRef.current.length===0) return;
+    if(!profRef.current||histRef.current.length===0||isBurner()) return;
     var last=histRef.current[histRef.current.length-1];
     if(last.type==="writing"){
       var updated=Object.assign({},last,{studentAnswer:studentAnswer,writingFeedback:fb,writingScore:fb.score!=null?fb.score:null,correct:true});
       var nh=histRef.current.slice(0,-1).concat([updated]);
-      histRef.current=nh;
-      if(!isBurner()) saveHistory(profRef.current.id,nh);
+      histRef.current=nh; saveHistory(profRef.current.id,nh);
     }
   }
 
   function handlePause(){
-    if(!profRef.current||!q) return;
+    if(!profRef.current||!q||isBurner()) return;
     var paused={
       id:uid(), savedAt:new Date().toISOString(), type:"writing",
       question:q.question, topic:q.topic||topicRef.current||"",
@@ -194,7 +188,7 @@ function App(){
       yearId:diffRef.current,
       subjectId:subjRef.current?subjRef.current.id:"writing"
     };
-    if(!isBurner()) addPaused(profRef.current.id,paused);
+    addPaused(profRef.current.id,paused);
     setScreen("home");
   }
 
@@ -226,9 +220,7 @@ function App(){
     try{
       var text=await callGroq(apiKeyRef.current,buildPrompt(subId,tp,yearId,prevRef.current));
       var parsed=validateQuestion(JSON.parse(text));
-      // Option 2: maths arithmetic check (instant, no API call)
       if(subId==="maths") parsed=tryMathsValidate(parsed);
-      // Option 1: double-pass AI validation for English & NVR
       if(subId==="english"||subId==="nvr"){
         setGenError("double-checking");
         parsed=await doublePassValidate(apiKeyRef.current,parsed);
@@ -264,10 +256,9 @@ function App(){
     if(modeRef.current&&modeRef.current.id==="mock"&&scRef.current/qtRef.current>=0.8) got=award(earned,"mockAce")||got;
     badRef.current=earned; setBadges(earned);
     if(got) showToast(got);
-    persist({counts:nc,badges:earned});
-    // Backup reminder every 10 completed sessions
     var totalSessions=Object.values(nc).reduce(function(a,b){return a+(b||0);},0);
     if(totalSessions>0&&totalSessions%10===0) setShowBackup(true);
+    persist({counts:nc,badges:earned});
     setFromRes(true); setScreen("results");
   }
 
@@ -296,59 +287,6 @@ function App(){
     setScreen("question"); loadQ(sub.id,t,diffRef.current);
   }
 
-  // ── IMPORT DATA HANDLER ──────────────────────────────────────────────────────
-  function handleImportFile(e){
-    var file=e.target.files&&e.target.files[0];
-    if(!file) return;
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      try{
-        var data=JSON.parse(ev.target.result);
-        if(!data.version||!data.type){setImportMsg("Invalid file format.");return;}
-        var toImport=[];
-        if(data.type==="single"&&data.profile){
-          toImport=[{profile:data.profile,progress:data.progress,history:data.history,paused:data.paused,typing:data.typing}];
-        } else if(data.type==="all"&&Array.isArray(data.profiles)){
-          toImport=data.profiles;
-        } else {setImportMsg("Could not read file.");return;}
-        // Ask user which profiles to restore
-        var names=toImport.map(function(p){return p.profile.name;}).join(", ");
-        if(!window.confirm("Import "+toImport.length+" profile(s): "+names+"?\n\nIf a profile name already exists you will be asked whether to replace it.")) return;
-        var existing=loadProfiles();
-        var updated=existing.slice();
-        toImport.forEach(function(item){
-          var pr=item.profile;
-          var existIdx=updated.findIndex(function(e){return e.name.toLowerCase()===pr.name.toLowerCase();});
-          if(existIdx>=0){
-            if(!window.confirm("Profile " + pr.name + " already exists on this device. Replace it? (tap Cancel to keep both)")) {
-              // Keep both — give imported profile a new id
-              pr=Object.assign({},pr,{id:uid(),name:pr.name+" (imported)"});
-            } else {
-              // Replace — remove existing first
-              var oldId=updated[existIdx].id;
-              updated.splice(existIdx,1);
-              try{["progress","history","paused"].forEach(function(k){localStorage.removeItem(getKey(oldId,k));});localStorage.removeItem("ga_typing_"+oldId);}catch(ex){}
-            }
-          }
-          updated.push(pr);
-          try{
-            if(item.progress) localStorage.setItem(getKey(pr.id,"progress"),JSON.stringify(item.progress));
-            if(item.history)  localStorage.setItem(getKey(pr.id,"history"), JSON.stringify(item.history));
-            if(item.paused)   localStorage.setItem(getKey(pr.id,"paused"),  JSON.stringify(item.paused));
-            if(item.typing)   localStorage.setItem("ga_typing_"+pr.id,      JSON.stringify(item.typing));
-          }catch(ex){}
-        });
-        saveProfiles(updated);
-        setImportMsg("Import successful! "+toImport.length+" profile(s) restored.");
-        setShowImport(false);
-        // Refresh profile list
-        setProfile(null);
-        localStorage.removeItem("ga_active_user");
-      }catch(err){setImportMsg("Import failed: "+(err.message||"unknown error"));}
-    };
-    reader.readAsText(file);
-  }
-
   function startCustomSession(customQuestion,m){
     var writingSub=SUBJECTS.find(function(s){return s.id==="writing";})||SUBJECTS[3];
     setSubject(writingSub); subjRef.current=writingSub;
@@ -365,39 +303,101 @@ function App(){
     setScreen("question");
   }
 
-  // ── RENDER ──────────────────────────────────────────────────────────────────
+  // ── IMPORT DATA HANDLER ───────────────────────────────────────────────────
+  function handleImportFile(e){
+    var file=e.target.files&&e.target.files[0];
+    if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.version||!data.type){setImportMsg("Invalid file format.");return;}
+        var toImport=[];
+        if(data.type==="single"&&data.profile){
+          toImport=[{profile:data.profile,progress:data.progress,history:data.history,paused:data.paused,typing:data.typing}];
+        } else if(data.type==="all"&&Array.isArray(data.profiles)){
+          toImport=data.profiles;
+        } else {setImportMsg("Could not read file.");return;}
+        var names=toImport.map(function(p){return p.profile.name;}).join(", ");
+        if(!window.confirm("Import "+toImport.length+" profile(s): "+names+"?\n\nIf a profile name already exists you will be asked whether to replace it.")) return;
+        var existing=loadProfiles();
+        var updated=existing.slice();
+        toImport.forEach(function(item){
+          var pr=item.profile;
+          var existIdx=updated.findIndex(function(e){return e.name.toLowerCase()===pr.name.toLowerCase();});
+          if(existIdx>=0){
+            if(!window.confirm("Profile " + pr.name + " already exists on this device. Replace it? (tap Cancel to keep both)")) {
+              pr=Object.assign({},pr,{id:uid(),name:pr.name+" (imported)"});
+            } else {
+              var oldId=updated[existIdx].id;
+              updated.splice(existIdx,1);
+              try{["progress","history","paused"].forEach(function(k){localStorage.removeItem(getKey(oldId,k));});localStorage.removeItem("ga_typing_"+oldId);}catch(ex){}
+            }
+          }
+          updated.push(pr);
+          try{
+            if(item.progress) localStorage.setItem(getKey(pr.id,"progress"),JSON.stringify(item.progress));
+            if(item.history)  localStorage.setItem(getKey(pr.id,"history"), JSON.stringify(item.history));
+            if(item.paused)   localStorage.setItem(getKey(pr.id,"paused"),  JSON.stringify(item.paused));
+            if(item.typing)   localStorage.setItem("ga_typing_"+pr.id,      JSON.stringify(item.typing));
+          }catch(ex){}
+        });
+        saveProfiles(updated);
+        setImportMsg("Import successful! "+toImport.length+" profile(s) restored.");
+        setShowImport(false);
+        setProfile(null);
+        localStorage.removeItem("ga_active_user");
+      }catch(err){setImportMsg("Import failed: "+(err.message||"unknown error"));}
+    };
+    reader.readAsText(file);
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
   if(!apiKey) return React.createElement(ApiKeyScreen,{onSave:function(k){setApiKey(k);}});
+
   if(!profile){
-    if(profView==="create") return React.createElement(ProfileCreate,{
-      onBack:function(){setProfView("select");},
-      onCreated:function(pr){
-        // Burner profiles: don't persist to localStorage, just set in state
-        if(pr.type==="burner"){
-          // Give burner a session-only id - not saved to ga_profiles
-          setProfile(pr);
-          setProfView("select");
-        } else {
-          setProfile(pr);
-          setProfView("select");
-        }
-      }
-    });
-    // Backup reminder banner
     if(showBackup) return React.createElement("div",{style:{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}},
       React.createElement("div",{style:{maxWidth:"420px",width:"100%",background:CARD,border:"1px solid "+ORANGE+"55",borderRadius:"16px",padding:"24px",textAlign:"center"}},
         React.createElement("div",{style:{fontSize:"48px",marginBottom:"12px"}},"💾"),
         React.createElement("h2",{style:{color:ORANGE,fontSize:"18px",fontWeight:"900",margin:"0 0 10px"}},"Back Up Your Data"),
-        React.createElement("p",{style:{color:MUTED,fontSize:"13px",lineHeight:"1.7",margin:"0 0 16px"}},"Before switching profiles, consider exporting your data. Clearing browser cookies or cache permanently deletes all progress with no recovery option."),
-        React.createElement("p",{style:{color:MUTED,fontSize:"12px",lineHeight:"1.6",margin:"0 0 20px"}},"You can export from the Dashboard screen after logging in."),
+        React.createElement("p",{style:{color:MUTED,fontSize:"13px",lineHeight:"1.7",margin:"0 0 12px"}},"Before switching profiles, consider exporting your data. Clearing browser cookies or cache permanently deletes all progress with no recovery option."),
+        React.createElement("div",{style:{background:"rgba(6,214,160,.07)",border:"1px solid "+TEAL+"44",borderRadius:"12px",padding:"10px 14px",marginBottom:"16px"}},
+          React.createElement("p",{style:{color:TEAL,fontSize:"12px",fontWeight:"800",margin:"0 0 4px"}},"Two ways to back up:"),
+          React.createElement("p",{style:{color:MUTED,fontSize:"12px",lineHeight:"1.7",margin:0}},
+            "1. Tap the ",React.createElement("span",{style:{color:TEAL,fontWeight:"700"}},"📥 Export"),
+            " button next to your profile name on the home screen.",
+            React.createElement("br"),
+            "2. Go to the ",React.createElement("span",{style:{color:GOLD,fontWeight:"700"}},"Parent/Teacher Dashboard"),
+            " and tap Export My Data."
+          )
+        ),
         React.createElement("button",{onClick:function(){setShowBackup(false);},style:bs("linear-gradient(135deg,"+GOLD+","+ORANGE+")",{width:"100%",color:BG,fontSize:"14px",padding:"13px",marginBottom:"8px"})},"✅ I understand, continue"),
         React.createElement("a",{href:"privacy.html",style:{color:MUTED,fontSize:"11px",textDecoration:"none"}},"Privacy Policy")
       )
     );
-    // Hidden file input for import
+
+    if(profView==="create") return React.createElement(ProfileCreate,{
+      onBack:function(){setProfView("select");},
+      onCreated:function(pr,showWelcome){
+        setProfile(pr);
+        setProfView("select");
+        if(showWelcome){
+          var msg=pr.type==="burner"
+            ?"Session started for "+pr.name+"! Nothing is saved — enjoy your practice."
+            :"Profile created! Welcome, "+pr.name+"! Progress is saved automatically on this device.";
+          setToast({icon:pr.type==="burner"?"🔥":"✅",name:msg,desc:"",xp:0});
+          setTimeout(function(){setToast(null);},4000);
+        }
+      }
+    });
+
     var importInputId="ga-import-input";
     return React.createElement("div",null,
       React.createElement("input",{type:"file",id:importInputId,accept:".json",onChange:handleImportFile,style:{display:"none"}}),
-      importMsg&&React.createElement("div",{style:{position:"fixed",top:"14px",left:"50%",transform:"translateX(-50%)",zIndex:9999,background:CARD,border:"1px solid "+TEAL,borderRadius:"12px",padding:"12px 20px",color:TEAL,fontSize:"13px",fontWeight:"700",boxShadow:"0 4px 20px rgba(0,0,0,.4)",maxWidth:"320px",textAlign:"center"}},importMsg,React.createElement("button",{onClick:function(){setImportMsg("");},style:{background:"none",border:"none",color:MUTED,marginLeft:"10px",cursor:"pointer",fontSize:"14px"}},"✕")),
+      importMsg&&React.createElement("div",{style:{position:"fixed",top:"14px",left:"50%",transform:"translateX(-50%)",zIndex:9999,background:CARD,border:"1px solid "+TEAL,borderRadius:"12px",padding:"12px 20px",color:TEAL,fontSize:"13px",fontWeight:"700",boxShadow:"0 4px 20px rgba(0,0,0,.4)",maxWidth:"320px",textAlign:"center"}},
+        importMsg,
+        React.createElement("button",{onClick:function(){setImportMsg("");},style:{background:"none",border:"none",color:MUTED,marginLeft:"10px",cursor:"pointer",fontSize:"14px"}},"✕")
+      ),
       React.createElement(ProfileSelect,{
         onSelect:function(pr){setProfile(pr);},
         onCreate:function(){setProfView("create");},
@@ -407,14 +407,7 @@ function App(){
           if(inp){inp.value="";inp.click();}
         },
         onQuickStart:function(){
-          // Create an anonymous burner profile in memory only - never saved
-          var guestPr={
-            id:"guest_"+Date.now(),
-            name:"Guest",
-            avatar:"🦉",
-            type:"burner",
-            createdAt:new Date().toISOString()
-          };
+          var guestPr={id:"guest_"+Date.now(),name:"Guest",avatar:"🦉",type:"burner",createdAt:new Date().toISOString()};
           setProfile(guestPr);
         }
       })
@@ -427,11 +420,25 @@ function App(){
       profile:profile,xp:xp,streak:streak,total:total,badges:badges,diff:diff,
       onDiff:function(d){setDiff(d);diffRef.current=d;persist({diff:d});},
       onGo:setScreen,
-      onSwitch:function(){if(profRef.current&&profRef.current.type!=="burner")setShowBackup(true);localStorage.removeItem("ga_active_user");setProfile(null);},
+      onSwitch:function(){
+        if(profRef.current&&profRef.current.type!=="burner") setShowBackup(true);
+        localStorage.removeItem("ga_active_user");setProfile(null);
+      },
       onChangeKey:function(){localStorage.removeItem("ga_groq_key");setApiKey("");},
       onNeedYear:function(){
         var el=document.getElementById("year-group-section");
         if(el) el.scrollIntoView({behavior:"smooth"});
+      },
+      onExport:function(){
+        if(!profRef.current) return;
+        if(profRef.current.type==="burner"){
+          setToast({icon:"🔥",name:"Session Only profiles cannot be exported",desc:"Create a Persistent profile to enable export",xp:0});
+          setTimeout(function(){setToast(null);},3500);
+          return;
+        }
+        exportProfile(profRef.current.id,profRef.current.name);
+        setToast({icon:"📥",name:"Data exported!",desc:"Check your downloads folder for the backup file",xp:0});
+        setTimeout(function(){setToast(null);},3500);
       }
     }),
     screen==="subjects"&&React.createElement(SubjectsScreen,{
@@ -495,12 +502,28 @@ function App(){
     screen==="spelling"&&React.createElement(SpellingScreen,{
       yearId:diff,apiKey:apiKey,
       onBack:function(){setScreen("subjects");},
-      onFinish:function(sc){
+      onFinish:function(){
         var sub=subjRef.current||SUBJECTS.find(function(s){return s.id==="spelling";});
         if(sub){
           var nc=Object.assign({},cntRef.current); nc[sub.id]=(nc[sub.id]||0)+1;
           cntRef.current=nc; setCounts(nc);
           var earned=badRef.current.slice(); var got=award(earned,"sp5");
+          if(got){badRef.current=earned;setBadges(earned);showToast(got);}
+          persist({counts:nc,badges:earned});
+        }
+        setScreen("subjects");
+      }
+    }),
+    screen==="typing"&&React.createElement(TypingTutorScreen,{
+      userId:profile.id,
+      yearId:diff,
+      onBack:function(){setScreen("subjects");},
+      onFinish:function(){
+        var sub=subjRef.current||SUBJECTS.find(function(s){return s.id==="typing";});
+        if(sub){
+          var nc=Object.assign({},cntRef.current); nc[sub.id]=(nc[sub.id]||0)+1;
+          cntRef.current=nc; setCounts(nc);
+          var earned=badRef.current.slice(); var got=award(earned,"tp5");
           if(got){badRef.current=earned;setBadges(earned);showToast(got);}
           persist({counts:nc,badges:earned});
         }
@@ -519,22 +542,6 @@ function App(){
         var earned=badRef.current.slice();
         if(correct){var got=award(earned,"first");if(got){badRef.current=earned;setBadges(earned);showToast(got);}}
         persist({xp:newXp,total:newT});
-      }
-    }),
-    screen==="typing"&&React.createElement(TypingTutorScreen,{
-      userId:profile.id,
-      yearId:diff,
-      onBack:function(){setScreen("subjects");},
-      onFinish:function(){
-        var sub=subjRef.current||SUBJECTS.find(function(s){return s.id==="typing";});
-        if(sub){
-          var nc=Object.assign({},cntRef.current); nc[sub.id]=(nc[sub.id]||0)+1;
-          cntRef.current=nc; setCounts(nc);
-          var earned=badRef.current.slice(); var got=award(earned,"tp5");
-          if(got){badRef.current=earned;setBadges(earned);showToast(got);}
-          persist({counts:nc,badges:earned});
-        }
-        setScreen("subjects");
       }
     })
   );
